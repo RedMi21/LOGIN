@@ -1,70 +1,56 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { Component, inject } from '@angular/core';
 import { AccesoService } from '../../services/acceso.service';
+import { Router } from '@angular/router';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Login } from '../../interfaces/Login';
+
+import {MatCardModule} from '@angular/material/card';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatButtonModule} from '@angular/material/button';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
+  imports: [MatCardModule,MatFormFieldModule,MatInputModule,MatButtonModule,ReactiveFormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrl: './login.component.css'
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent {
 
-  form!: FormGroup;
-  isLoggingIn = false;
-  isRecoveringPassword = false;
+     private accesoService = inject(AccesoService);
+     private router = inject(Router);
+     public formBuild = inject(FormBuilder);
 
-  constructor(
-    private accesoService: AccesoService,
-    private formBuilder: FormBuilder,
-    private router: Router,
-    private snackBar: MatSnackBar
-  ) { }
+     public formLogin: FormGroup = this.formBuild.group({
+          correo: ['',Validators.required],
+          clave: ['',Validators.required]
+     })
 
-  ngOnInit(): void {
-    this.form = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required]]
-    });
-  }
+     iniciarSesion(){
+          if(this.formLogin.invalid) return;
 
-  login() {
-    this.isLoggingIn = true;
+          const objeto:Login = {
+               correo: this.formLogin.value.correo,
+               clave: this.formLogin.value.clave
+          }
 
-    this.accesoService.signIn({
-      email: this.form.value.email,
-      password: this.form.value.password
-    }).subscribe({
-      next: () => this.router.navigate(['data']),
-      error: error => {
-        this.isLoggingIn = false;
-        this.snackBar.open(error.message, "OK", {
-          duration: 5000
-        })
-      }
-    });
-  }
+          this.accesoService.login(objeto).subscribe({
+               next:(data) =>{
+                    if(data.isSuccess){
+                         localStorage.setItem("token",data.token)
+                         this.router.navigate(['inicio'])
+                    }else{
+                         alert("Credenciales son incorrectas")
+                    }
+               },
+               error:(error) =>{
+                    console.log(error.message);
+               }
+          })
+     }
 
-  recoverPassword() {
-    this.isRecoveringPassword = true;
-
-    this.accesoService.recoverPassword(
-      this.form.value.email
-    ).subscribe({
-      next: () => {
-        this.isRecoveringPassword = false;
-        this.snackBar.open("No puedes recuperar tu contraseña sin tu emai", "OK", {
-          duration: 5000
-        });
-      },
-      error: error => {
-        this.isRecoveringPassword = false;
-        this.snackBar.open(error.message, "OK", {
-          duration: 5000
-        });
-      }
-    })
-  }
-
+     registrarse(){
+          this.router.navigate(['registro'])
+     }
 }

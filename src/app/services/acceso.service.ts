@@ -1,52 +1,30 @@
-import { Injectable } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { catchError, from, Observable, of, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { appsettings } from '../settings/appsettings';
+import { Usuario } from '../interfaces/Usuario';
+import { Observable } from 'rxjs';
+import { ResponseAcceso } from '../interfaces/ResponseAcceso';
+import { Login } from '../interfaces/Login';
 
 @Injectable({
-  providedIn: 'root'
+     providedIn: 'root'
 })
 export class AccesoService {
 
-  constructor(
-    private auth: AngularFireAuth
-  ) { }
+     private http = inject(HttpClient);
+     private baseUrl: string = appsettings.apiUrl;
 
-  signIn(params: SignIn): Observable<any> {
-    return from(this.auth.signInWithEmailAndPassword(
-      params.email, params.password
-    )).pipe(
-      catchError((error: FirebaseError) => 
-        throwError(() => new Error(this.translateFirebaseErrorMessage(error)))
-      )
-    );
-  }
+     constructor() { }
 
-  recoverPassword(email: string): Observable<void> {
-    return from(this.auth.sendPasswordResetEmail(email)).pipe(
-      catchError((error: FirebaseError) => 
-        throwError(() => new Error(this.translateFirebaseErrorMessage(error)))
-      )
-    );
-  }
+     registrarse(objeto: Usuario): Observable<ResponseAcceso> {
+          return this.http.post<ResponseAcceso>(`${this.baseUrl}Acceso/Registrarse`, objeto)
+     }
 
-  private translateFirebaseErrorMessage({code, message}: FirebaseError) {
-    if (code === "auth/user-not-found") {
-      return "User not found.";
-    }
-    if (code === "auth/wrong-password") {
-      return "User not found.";
-    }
-    return message;
-  }
+     login(objeto: Login): Observable<ResponseAcceso> {
+          return this.http.post<ResponseAcceso>(`${this.baseUrl}Acceso/Login`, objeto)
+     }
 
+     validarToken(token: string): Observable<ResponseAcceso> {
+          return this.http.get<ResponseAcceso>(`${this.baseUrl}Acceso/ValidarToken?token=${token}`)
+     }
 }
-
-type SignIn = {
-  email: string;
-  password: string;
-}
-
-type FirebaseError = {
-  code: string;
-  message: string
-};

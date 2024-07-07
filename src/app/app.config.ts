@@ -1,30 +1,16 @@
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
-import { BlankComponent } from './mocks/blank/blank.component';
-import { AppRoutingModule } from './app.routes';
-import { AppComponent } from './app.component';
-import { environment } from './environment/environment';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+import { provideRouter } from '@angular/router';
+
+import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './custom/auth.interceptor';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    BlankComponent
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    BrowserAnimationsModule,
-
-    AngularFireModule.initializeApp(environment.firebase),
-    AngularFireAuthModule,
-  ],
-  providers: [
-    provideAnimationsAsync()
-  ],
-  bootstrap: [AppComponent]
-})
-export class AppConfig { }
+export const appConfig: ApplicationConfig = {
+     providers: [
+          provideRouter(routes),
+          provideAnimationsAsync(),
+          importProvidersFrom(HttpClientModule),
+          provideHttpClient(withInterceptors([authInterceptor]))
+     ]
+};
