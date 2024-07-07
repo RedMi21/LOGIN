@@ -1,8 +1,30 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { AngularFireModule } from '@angular/fire/compat';
+import { AngularFireAuthModule } from '@angular/fire/compat/auth';
+import { BlankComponent } from './mocks/blank/blank.component';
+import { AppRoutingModule } from './app.routes';
+import { AppComponent } from './app.component';
+import { environment } from './environment/environment';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
-import { routes } from './app.routes';
+@NgModule({
+  declarations: [
+    AppComponent,
+    BlankComponent
+  ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    BrowserAnimationsModule,
 
-export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
-};
+    AngularFireModule.initializeApp(environment.firebase),
+    AngularFireAuthModule,
+  ],
+  providers: [
+    provideAnimationsAsync()
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppConfig { }
